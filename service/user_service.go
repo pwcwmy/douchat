@@ -33,6 +33,13 @@ func GetUserList(c *gin.Context) {
 func CreateUser(c *gin.Context) {
 	user := models.UserBasic{}
 	user.Name = c.Query("name")
+	data := models.FindUserByName(user.Name)
+	if data.Name != "" {
+		c.JSON(-1, gin.H{
+			"message": "用户名已经注册",
+		})
+		return
+	}
 	password := c.Query("password")
 	repassword := c.Query("repassword")
 	if password != repassword {

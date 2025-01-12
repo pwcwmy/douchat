@@ -63,3 +63,19 @@ func UpdateUser(user UserBasic) *gorm.DB {
 8. 校验
 结构体字段后面加校验规则
 https://github.com/asaskevich/govalidator
+
+9. 用户名、手机号不能重复注册
+```
+func FindUserByName(name string) *gorm.DB{
+	user := UserBasic{}
+	return utils.DB.Where("name=?", name).First(&user) // ? 占位符不能丢
+}
+```
+或者这么返回
+```
+func FindUserByEmail(email string) UserBasic{
+	user := UserBasic{}
+	utils.DB.Where("email=?", email).First(&user)
+	return user
+}
+```

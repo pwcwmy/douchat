@@ -53,3 +53,21 @@ func UpdateUser(user UserBasic) *gorm.DB {
 		Email: user.Email,
 	})
 }
+
+func FindUserByName(name string) UserBasic{
+	user := UserBasic{}
+	utils.DB.Where("name=?", name).First(&user) // ? 占位符不能丢
+	return user
+}
+
+func FindUserByPhone(phone string) UserBasic{
+	user := UserBasic{}
+	utils.DB.Where("phone=?", phone).First(&user)
+	return user
+}
+
+func FindUserByEmail(email string) UserBasic{
+	user := UserBasic{}
+	utils.DB.Where("email=?", email).First(&user)
+	return user
+}
