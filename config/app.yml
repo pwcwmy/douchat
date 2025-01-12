@@ -1,0 +1,2 @@
+mysql:
+  dns: root:@pwc20021015@tcp(127.0.0.1:3306)/douchat?charset=utf8mb4&parseTime=True&loc=Local
