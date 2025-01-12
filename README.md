@@ -56,3 +56,10 @@ func UpdateUser(user UserBasic) *gorm.DB {
 解决方法一:修改代码中struct
 1、把日期类型time.Time改为指针类型*time.Time
 2、设置数据库日期可以为null
+
+7. 解决git 去除本地代理
+![alt text](image-2.png)
+
+8. 校验
+结构体字段后面加校验规则
+https://github.com/asaskevich/govalidator
