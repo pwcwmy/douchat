@@ -79,3 +79,6 @@ func FindUserByEmail(email string) UserBasic{
 	return user
 }
 ```
+
+
+8. 登录token可以考虑 gin-jwt
