@@ -95,3 +95,5 @@ MsgHandler 函数：
 从某个订阅机制（可能是 Redis 或其他消息队列）获取消息，并格式化后通过 WebSocket 发送给客户端。
 记录当前时间并构造要发送的消息字符串。
 使用 ws.WriteMessage 方法发送文本消息（类型 1 表示文本消息）。
+
+![alt text](image-3.png)
