@@ -14,12 +14,15 @@ func main() {
   }
   
   // Migrate the schema
-  db.AutoMigrate(&models.UserBasic{})
+  // db.AutoMigrate(&models.UserBasic{})
+  // db.AutoMigrate(&models.Message{})
+  db.AutoMigrate(&models.Relation{})
+  db.AutoMigrate(&models.GroupBasic{})
 
   // Create
-  user := &models.UserBasic{}
-  user.Name = "peter"
-  db.Create(user)
+  // user := &models.UserBasic{}
+  // user.Name = "peter"
+  // db.Create(user)
 
   // Read
   // fmt.Println(db.First(user, 1)) // find product with integer primary key

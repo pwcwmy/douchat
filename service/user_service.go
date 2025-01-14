@@ -4,11 +4,13 @@ import (
 	"douchat/models"
 	"douchat/utils"
 	"fmt"
-	"math/rand"
-	"strconv"
-
 	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"math/rand"
+	"net/http"
+	"strconv"
+	"time"
 )
 
 // GetUserList
@@ -17,12 +19,12 @@ import (
 // @Success 200 {string} json{"code", "message"}
 // @Router /user/getUserList [get]
 func GetUserList(c *gin.Context) {
-	data := make([] *models.UserBasic, 10)
+	data := make([]*models.UserBasic, 10)
 	data = models.GetUserList()
 	c.JSON(200, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "获取用户列表成功",
-		"data": data,
+		"data":    data,
 	})
 }
 
@@ -40,9 +42,9 @@ func CreateUser(c *gin.Context) {
 	data := models.FindUserByName(user.Name)
 	if data.Name != "" {
 		c.JSON(-1, gin.H{
-			"code": -1,
+			"code":    -1,
 			"message": "用户名已经注册",
-			"data": user,
+			"data":    user,
 		})
 		return
 	}
@@ -50,9 +52,9 @@ func CreateUser(c *gin.Context) {
 	repassword := c.Query("repassword")
 	if password != repassword {
 		c.JSON(-1, gin.H{
-			"code": -1,
+			"code":    -1,
 			"message": "两次输入密码不一致",
-			"data": user,
+			"data":    user,
 		})
 		return
 	}
@@ -63,9 +65,9 @@ func CreateUser(c *gin.Context) {
 	user.Password = utils.MakePassWord(password, salt)
 	models.CreateUser(user)
 	c.JSON(200, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "创建用户成功",
-		"data": user,
+		"data":    user,
 	})
 }
 
@@ -81,9 +83,9 @@ func DeleteUser(c *gin.Context) {
 	user.ID = uint(id)
 	models.DeleteUser(user)
 	c.JSON(200, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "删除用户成功",
-		"data": user,
+		"data":    user,
 	})
 }
 
@@ -111,17 +113,16 @@ func UpdateUser(c *gin.Context) {
 	if err != nil {
 		fmt.Println("修改用户失败, 电话或邮箱校验不合法", err)
 		c.JSON(200, gin.H{
-			"code": -1,
+			"code":    -1,
 			"message": "修改用户失败, 电话或邮箱校验不合法",
-			"data": user,
-			
+			"data":    user,
 		})
 	} else {
 		models.UpdateUser(user)
 		c.JSON(200, gin.H{
-			"code": 0,
+			"code":    0,
 			"message": "修改用户成功",
-			"data": user,
+			"data":    user,
 		})
 	}
 }
@@ -142,11 +143,11 @@ func FindUserByNameAndPwd(c *gin.Context) {
 	user := models.FindUserByName(name)
 	if user.Name == "" {
 		c.JSON(200, gin.H{
-			"code": -1,
+			"code":    -1,
 			"message": "该用户不存在, 显示的是一个空的UserBasic",
-			"data": data,
+			"data":    data,
 		})
-		return 
+		return
 	}
 
 	password := c.Query("password")
@@ -154,17 +155,54 @@ func FindUserByNameAndPwd(c *gin.Context) {
 	flag := utils.ValidPassWord(password, user.Salt, user.Password)
 	if !flag {
 		c.JSON(200, gin.H{
-			"code": -1,
+			"code":    -1,
 			"message": "密码不正确",
-			"data": data,
+			"data":    data,
 		})
 		return
 	}
 	// 查询数据库时所用的密码应该为加密处理后的密码
 	data = models.FindUserByNameAndPwd(name, user.Password)
 	c.JSON(200, gin.H{
-		"code": 0,
+		"code":    0,
 		"message": "登录成功",
-		"data": data,
+		"data":    data,
 	})
+}
+
+// 防止跨域站点伪造请求
+var upGrade = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+func SendMsg(c *gin.Context) {
+	ws, err := upGrade.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer func(ws *websocket.Conn) {
+		err = ws.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(ws)
+	MsgHandler(ws, c)
+}
+
+func MsgHandler(ws *websocket.Conn, c *gin.Context) {
+	for {
+		msg, err := utils.Subscribe(c, utils.PublishKey)
+		if err != nil {
+			fmt.Println(err)
+		}
+		tm := time.Now().Format("2015-01-12 15:06:55")
+		m := fmt.Sprintf("[ws][%s]:%s", tm, msg)
+		err = ws.WriteMessage(1, []byte(m))
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
 }
